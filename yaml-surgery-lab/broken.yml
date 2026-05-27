@@ -1,0 +1,9 @@
+---
+- name: Fixed YAML playbook
+  hosts: all
+
+  tasks:
+    - name: Create lab file
+      ansible.builtin.copy:
+        content: "This file was created after fixing YAML"
+        dest: /tmp/yaml-surgery.txt
