@@ -1,0 +1,22 @@
+Host Passport
+=============
+
+Inventory name: {{ inventory_hostname }}
+System hostname: {{ ansible_facts['hostname'] }}
+Distribution: {{ ansible_facts['distribution'] }}
+Distribution version: {{ ansible_facts['distribution_version'] }}
+
+Primary IPv4 address: {{ ansible_default_ipv4.address | default('unknown') }}
+
+Inventory groups:
+{{ group_names | join(', ') }}
+
+{% if 'web' in group_names or 'webservers' in group_names %}
+Role: WEB NODE
+{% elif 'app' in group_names %}
+Role: APP NODE
+{% else %}
+Role: GENERIC NODE
+{% endif %}
+
+Managed by Ansible: yes

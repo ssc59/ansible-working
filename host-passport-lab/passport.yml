@@ -1,0 +1,15 @@
+---
+- name: Generate host passport files
+  hosts: all
+  gather_facts: true
+
+  tasks:
+    - name: Deploy host passport file
+      ansible.builtin.template:
+        src: host-passport.j2
+        dest: /tmp/host-passport.txt
+        mode: '0644'
+
+    - name: Display completion message
+      ansible.builtin.debug:
+        msg: "Host passport generated for {{ inventory_hostname }}"
