@@ -1,0 +1,30 @@
+---
+- name: Deploy demo service configuration
+  hosts: all
+  gather_facts: true
+
+  vars:
+    demo_service_name: training-service
+    demo_service_port: 8080
+    demo_environment: lab
+
+  tasks:
+    - name: Deploy demo service configuration file
+      ansible.builtin.template:
+        src: demo-service.conf.j2
+        dest: /tmp/demo-service.conf
+        mode: '0644'
+      notify: restart demo service
+
+    - name: Display configuration deployment message
+      ansible.builtin.debug:
+        msg: "Demo service configuration checked on {{ inventory_hostname }}"
+
+  handlers:
+    - name: Write restart marker
+      ansible.builtin.lineinfile:
+        path: /tmp/demo-service-restarted.log
+        line: "Restart triggered for {{ demo_service_name }} on {{ inventory_hostname }}"
+        create: true
+        mode: '0644'
+      listen: restart demo service
