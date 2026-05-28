@@ -5,7 +5,7 @@
 
   vars:
     demo_service_name: training-service
-    demo_service_port: 8080
+    demo_service_port: 9090
     demo_environment: lab
 
   tasks:
