@@ -1,0 +1,57 @@
+---
+- name: Simulate deployment with rollback
+  hosts: rollback_targets
+  gather_facts: false
+
+  vars:
+    app_dir: /tmp/app-release
+    rollback_log: /tmp/app-rollback.log
+    summary_log: /tmp/app-summary.log
+    app_version: "1.0.0"
+
+  tasks:
+    - name: Deploy application with rollback protection
+      block:
+        - name: Create application release directory
+          ansible.builtin.file:
+            path: "{{ app_dir }}"
+            state: directory
+            mode: '0755'
+
+        - name: Create application version file
+          ansible.builtin.copy:
+            content: "version={{ app_version }}"
+            dest: "{{ app_dir }}/version.txt"
+            mode: '0644'
+
+        - name: Simulate deployment failure
+          ansible.builtin.command: /bin/false
+
+      rescue:
+        - name: Record failed task name
+          ansible.builtin.copy:
+            content: |
+              Rollback was executed.
+              Failed task: {{ ansible_failed_task.name }}
+              Host: {{ inventory_hostname }}
+            dest: "{{ rollback_log }}"
+            mode: '0644'
+
+        - name: Remove partially deployed release directory
+          ansible.builtin.file:
+            path: "{{ app_dir }}"
+            state: absent
+
+        - name: Mark deployment as failed after rollback
+          ansible.builtin.fail:
+            msg: "Deployment failed on {{ inventory_hostname }}. Rollback was completed."
+
+      always:
+        - name: Write deployment summary
+          ansible.builtin.copy:
+            content: |
+              Deployment process finished.
+              Host: {{ inventory_hostname }}
+              Summary file created from always block.
+            dest: "{{ summary_log }}"
+            mode: '0644'
