@@ -1,0 +1,24 @@
+---
+- name: Deploy database configuration from encrypted variables
+  hosts: all
+
+  vars_files:
+    - secrets.yml
+
+  tasks:
+    - name: Create application config directory
+      ansible.builtin.file:
+        path: /tmp/vault-courier
+        state: directory
+        mode: '0700'
+
+    - name: Deploy database configuration
+      ansible.builtin.template:
+        src: db.conf.j2
+        dest: /tmp/vault-courier/db.conf
+        mode: '0600'
+      no_log: true
+
+    - name: Display safe success message
+      ansible.builtin.debug:
+        msg: "Database configuration deployed securely on {{ inventory_hostname }}"
