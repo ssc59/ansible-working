@@ -1,0 +1,49 @@
+---
+- name: Simulated rolling update
+  hosts: all
+  serial: 1
+  max_fail_percentage: 50
+
+  vars:
+    release_version: "1.0.0"
+    break_host: ""
+
+  tasks:
+    - name: Show current host being updated
+      ansible.builtin.debug:
+        msg: "Starting rolling update on {{ inventory_hostname }}"
+
+    - name: Create application directory
+      ansible.builtin.file:
+        path: /tmp/platform-app
+        state: directory
+        mode: '0755'
+
+    - name: Deploy release version marker
+      ansible.builtin.copy:
+        content: "{{ release_version }}"
+        dest: /tmp/platform-app/release-version.txt
+        mode: '0644'
+      notify: restart fake application
+
+    - name: Simulate maintenance time
+      ansible.builtin.pause:
+        seconds: 5
+
+    - name: Optional simulated failure
+      ansible.builtin.fail:
+        msg: "Simulated failure on {{ inventory_hostname }}"
+      when: inventory_hostname == break_host
+
+    - name: Run health check
+      ansible.builtin.command: test -f /tmp/platform-app/release-version.txt
+      changed_when: false
+
+    - name: Show successful update message
+      ansible.builtin.debug:
+        msg: "Rolling update completed on {{ inventory_hostname }}"
+
+  handlers:
+    - name: restart fake application
+      ansible.builtin.debug:
+        msg: "Fake application restarted on {{ inventory_hostname }}"
